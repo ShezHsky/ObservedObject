@@ -4,17 +4,32 @@ import XCTest
 
 class PropertyDidChangeTests: XCTestCase {
     
-    func testPublisherForPropertyPostsInitialValue() {
+    func testPublisherForPropertyPostsInitialValue_OptionsContainInitialValue() {
         let container = ObservableContainer(value: "Hello, World")
         
         var observed: String?
         let cancellable = container
-            .publisher(for: \.value)
+            .publisher(for: \.value, options: [.initial])
             .sink { (value) in
                 observed = value
             }
         
         XCTAssertEqual("Hello, World", observed)
+        
+        cancellable.cancel()
+    }
+    
+    func testPublisherForPropertyDoesNotPostInitialValue_OptionsDoNotContainInitialValue() {
+        let container = ObservableContainer(value: "Hello, World")
+        
+        var observed: String?
+        let cancellable = container
+            .publisher(for: \.value, options: [])
+            .sink { (value) in
+                observed = value
+            }
+        
+        XCTAssertNil(observed, "Not specifying `initial` should not provide initial value to subscriber")
         
         cancellable.cancel()
     }
