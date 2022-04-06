@@ -43,14 +43,20 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions, subscriber: S) {
             self.subscriber = subscriber
             
-            let initialValue = object[keyPath: keyPath]
-            let initialValuePublisher = Just(initialValue)
+            let initialValuePublisher: AnyPublisher<Value, Never> = {
+                let initialValue = object[keyPath: keyPath]
+                if options.contains(.initial) {
+                    return Just(initialValue).eraseToAnyPublisher()
+                } else {
+                    return Empty().eraseToAnyPublisher()
+                }
+            }()
+            
             let propertyFromObjectPublisher = object.objectDidChange.map(keyPath)
             
             propertyDidChange = initialValuePublisher
                 .merge(with: propertyFromObjectPublisher)
                 .removeDuplicates()
-                .dropFirst(options.droppedElements)
                 .sink { [weak self] (newValue) in
                     self?.updateSubscriber(value: newValue)
                 }

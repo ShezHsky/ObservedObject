@@ -14,12 +14,4 @@ public struct ObservedObjectPropertyOptions: OptionSet {
     /// method even returns.
     public static let initial = ObservedObjectPropertyOptions(rawValue: 1 << 0)
     
-    var droppedElements: Int {
-        if contains(.initial) {
-            return 0
-        } else {
-            return 1
-        }
-    }
-    
 }
