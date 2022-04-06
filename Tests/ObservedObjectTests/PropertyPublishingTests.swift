@@ -121,6 +121,23 @@ class PropertyPublishingTests: XCTestCase {
         XCTAssertEqual([], subscriber.receiveInputs)
     }
     
+    func testOnlyRequestingOneValueDoesNotProvideAnyExtraUpdates() {
+        let container = ObservableContainer(value: "Hello, World")
+        let subscriber = SpySubscriber<String, Never>()
+        
+        container
+            .publisher(for: \.value)
+            .subscribe(subscriber)
+        
+        subscriber.subscription?.request(.max(1))
+        
+        container.value = "Hello again, World"
+        let expectedCompletion = Subscribers.Completion<Never>.finished
+        
+        XCTAssertEqual(["Hello, World"], subscriber.receiveInputs)
+        XCTAssertEqual(expectedCompletion, subscriber.completion)
+    }
+    
     private class SpySubscriber<T, U>: Combine.Subscriber where U: Error {
                 
         typealias Input = T
@@ -131,8 +148,9 @@ class PropertyPublishingTests: XCTestCase {
             self.subscription = subscription
         }
         
+        private(set) var completion: Subscribers.Completion<U>?
         func receive(completion: Subscribers.Completion<U>) {
-            
+            self.completion = completion
         }
         
         private(set) var receiveInputs = [T]()

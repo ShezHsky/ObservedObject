@@ -42,12 +42,30 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         private let options: ObservedObjectPropertyOptions
         private let subscriber: S
         private var propertyDidChange: Cancellable?
+        private var demand: Subscribers.Demand?
         
         init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions, subscriber: S) {
             self.object = object
             self.keyPath = keyPath
             self.options = options
             self.subscriber = subscriber
+        }
+        
+        let combineIdentifier = CombineIdentifier()
+        
+        func request(_ demand: Subscribers.Demand) {
+            self.demand = demand
+            prepareUpstreamIfNeeded()
+        }
+        
+        func cancel() {
+            propertyDidChange?.cancel()
+        }
+        
+        private func prepareUpstreamIfNeeded() {
+            if propertyDidChange == nil {
+                prepareUpstream()
+            }
         }
         
         private func prepareUpstream() {
@@ -66,26 +84,24 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
                 .merge(with: propertyFromObjectPublisher)
                 .removeDuplicates()
                 .sink { [weak self] (newValue) in
-                    self?.updateSubscriber(value: newValue)
+                    self?.updateSubscriber(newValue)
                 }
         }
         
-        private func updateSubscriber(value: Value) {
-            _ = subscriber.receive(value)
-        }
-        
-        let combineIdentifier = CombineIdentifier()
-        
-        func request(_ demand: Subscribers.Demand) {
-            if propertyDidChange == nil {
-                prepareUpstream()
+        private func updateSubscriber(_ newValue: Value) {
+            guard var demand = demand else { return }
+            
+            if demand > .none {
+                demand -= 1
+                _ = subscriber.receive(newValue)
             }
+            
+            if demand == .none {
+                subscriber.receive(completion: .finished)
+            }
+            
+            self.demand = demand
         }
-        
-        func cancel() {
-            Swift.print("")
-        }
-        
     }
     
 }
