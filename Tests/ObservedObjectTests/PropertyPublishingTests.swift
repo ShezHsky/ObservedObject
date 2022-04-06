@@ -4,17 +4,17 @@ import XCTest
 
 class PropertyPublishingTests: XCTestCase {
     
-    func testPublisherForPropertyPostsInitialValue_OptionsContainInitialValue() {
+    func testPublisherForPropertyPostsInitialValue_OptionsContainInitialValueByDefault() {
         let container = ObservableContainer(value: "Hello, World")
         
         var observed: String?
         let cancellable = container
-            .publisher(for: \.value, options: [.initial])
+            .publisher(for: \.value)
             .sink { (value) in
                 observed = value
             }
         
-        XCTAssertEqual("Hello, World", observed)
+        XCTAssertEqual("Hello, World", observed, "Should receive initial property value by default")
         
         cancellable.cancel()
     }

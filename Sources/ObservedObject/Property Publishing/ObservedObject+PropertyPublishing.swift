@@ -8,7 +8,7 @@ extension ObservedObject {
     /// - Returns: A publisher that emits elements each time the property’s value changes.
     public func publisher<Value>(
         for keyPath: KeyPath<Self, Value>,
-        options: ObservedObjectPropertyOptions = []
+        options: ObservedObjectPropertyOptions = [.initial]
     ) -> Publishers.ObservedPropertyPublisher<Self, Value> {
         Publishers.ObservedPropertyPublisher(object: self, keyPath: keyPath, options: options)
     }
