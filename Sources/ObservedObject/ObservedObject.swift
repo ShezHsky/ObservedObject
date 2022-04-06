@@ -2,8 +2,8 @@ import Combine
 
 /// A type of object with a publisher that emits after the object has changed.
 ///
-/// By default an ``ObservedObject`` synthesizes an ``objectDidChange-1ftr4`` publisher that emits the
-/// changed value after any of its `@Observed` properties changes.
+/// By default an ``ObservedObject`` synthesizes an ``ObservedObject/ObservedObject/objectDidChange-1ftr4`` publisher
+/// that emits the changed value after any of its ``Observed`` properties changes.
 ///
 ///     class Contact: ObservedObject {
 ///         @Observed var name: String
