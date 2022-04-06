@@ -7,29 +7,25 @@ extension Publishers {
     /// Use this publisher to integrate a property that’s observable with ``@Observed`` into a Combine publishing
     /// chain. You can create a publisher of this type with the ``ObservedObject`` instance method
     /// ``ObservedObject.publisher(for:options:)``, passing in the key path.
-    public struct ObservedPropertyPublisher<Object, Value> where Object: ObservedObject, Value: Equatable {
+    public struct PropertyPublisher<Object, Value> where Object: ObservedObject {
         
-        private let object: Object
-        private let keyPath: KeyPath<Object, Value>
-        private let options: ObservedObjectPropertyOptions
+        private let pipelineFactory: PropertyPipelineFactory<Value>
         
-        init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions) {
-            self.object = object
-            self.keyPath = keyPath
-            self.options = options
+        init(pipelineFactory: PropertyPipelineFactory<Value>) {
+            self.pipelineFactory = pipelineFactory
         }
         
     }
     
 }
 
-extension Publishers.ObservedPropertyPublisher: Publisher {
+extension Publishers.PropertyPublisher: Publisher {
     
     public typealias Output = Value
     public typealias Failure = Never
     
     public func receive<S>(subscriber: S) where S: Subscriber, S.Input == Value, S.Failure == Never {
-        let subscription = Subscription(object: object, keyPath: keyPath, options: options, subscriber: subscriber)
+        let subscription = Subscription(pipelineFactory: pipelineFactory, subscriber: subscriber)
         subscriber.receive(subscription: subscription)
     }
     
@@ -37,17 +33,13 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         where S: Combine.Subscriber, S.Input == Output, S.Failure == Failure
     {
         
-        private let object: Object
-        private let keyPath: KeyPath<Object, Value>
-        private let options: ObservedObjectPropertyOptions
+        private let pipelineFactory: PropertyPipelineFactory<Value>
         private let subscriber: S
         private var propertyDidChange: Cancellable?
         private var demand: Subscribers.Demand?
         
-        init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions, subscriber: S) {
-            self.object = object
-            self.keyPath = keyPath
-            self.options = options
+        init(pipelineFactory: PropertyPipelineFactory<Value>, subscriber: S) {
+            self.pipelineFactory = pipelineFactory
             self.subscriber = subscriber
         }
         
@@ -69,20 +61,8 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         }
         
         private func prepareUpstream() {
-            let initialValuePublisher: AnyPublisher<Value, Never> = {
-                let initialValue = object[keyPath: keyPath]
-                if options.contains(.initial) {
-                    return Just(initialValue).eraseToAnyPublisher()
-                } else {
-                    return Empty().eraseToAnyPublisher()
-                }
-            }()
-            
-            let propertyFromObjectPublisher = object.objectDidChange.map(keyPath)
-            
-            propertyDidChange = initialValuePublisher
-                .merge(with: propertyFromObjectPublisher)
-                .removeDuplicates()
+            propertyDidChange = pipelineFactory
+                .makePipeline()
                 .sink { [weak self] (newValue) in
                     self?.updateSubscriber(newValue)
                 }

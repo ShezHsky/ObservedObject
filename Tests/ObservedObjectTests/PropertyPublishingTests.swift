@@ -138,6 +138,33 @@ class PropertyPublishingTests: XCTestCase {
         XCTAssertEqual(expectedCompletion, subscriber.completion)
     }
     
+    func testSupportsNonEquatableObservationThroughEqualityComparator() {
+        let container = ObservableContainer(value: NonEquatable(value: "Hello, World"))
+        
+        var observed: NonEquatable?
+        let cancellable = container
+            .publisher(for: \.value, propertyChangedBy: { $0.equals(other: $1) })
+            .sink { (value) in
+                observed = value
+            }
+        
+        container.value = NonEquatable(value: "Hello again, World")
+        
+        XCTAssertEqual("Hello again, World", observed?.value)
+        
+        cancellable.cancel()
+    }
+    
+    private struct NonEquatable {
+        
+        var value: String
+        
+        func equals(other: NonEquatable) -> Bool {
+            self.value == other.value
+        }
+        
+    }
+    
     private class SpySubscriber<T, U>: Combine.Subscriber where U: Error {
                 
         typealias Input = T
@@ -154,9 +181,10 @@ class PropertyPublishingTests: XCTestCase {
         }
         
         private(set) var receiveInputs = [T]()
+        var demand: Subscribers.Demand = .unlimited
         func receive(_ input: T) -> Subscribers.Demand {
             receiveInputs.append(input)
-            return .unlimited
+            return demand
         }
         
     }
