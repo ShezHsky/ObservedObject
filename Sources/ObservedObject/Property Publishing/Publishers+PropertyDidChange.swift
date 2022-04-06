@@ -6,8 +6,8 @@ extension Publishers {
     ///
     /// Use this publisher to integrate a property that’s observable with ``@Observed`` into a Combine publishing
     /// chain. You can create a publisher of this type with the ``ObservedObject`` instance method
-    /// ``publisher(for:options:)``, passing in the key path.
-    public struct ObservedPropertyPublisher<Object, Value> where Object: ObservedObject {
+    /// ``ObservedObject.publisher(for:options:)``, passing in the key path.
+    public struct ObservedPropertyPublisher<Object, Value> where Object: ObservedObject, Value: Equatable {
         
         private let object: Object
         private let keyPath: KeyPath<Object, Value>
@@ -37,36 +37,23 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         where S: Combine.Subscriber, S.Input == Output, S.Failure == Failure
     {
         
-        private var object: Object!
-        private let keyPath: KeyPath<Object, Value>
-        private let options: ObservedObjectPropertyOptions
         private let subscriber: S
         private var propertyDidChange: Cancellable?
         
-        private var currentValue: Value {
-            object[keyPath: keyPath]
-        }
-        
         init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions, subscriber: S) {
-            self.object = object
-            self.keyPath = keyPath
-            self.options = options
             self.subscriber = subscriber
             
-            propertyDidChange = object
-                .objectDidChange
-                .map(keyPath)
+            let initialValue = object[keyPath: keyPath]
+            let initialValuePublisher = Just(initialValue)
+            let propertyFromObjectPublisher = object.objectDidChange.map(keyPath)
+            
+            propertyDidChange = initialValuePublisher
+                .merge(with: propertyFromObjectPublisher)
+                .removeDuplicates()
+                .dropFirst(options.droppedElements)
                 .sink { [weak self] (newValue) in
                     self?.updateSubscriber(value: newValue)
                 }
-            
-            publishInitialValue()
-        }
-        
-        private func publishInitialValue() {
-            if options.contains(.initial) {
-                updateSubscriber(value: currentValue)
-            }
         }
         
         private func updateSubscriber(value: Value) {

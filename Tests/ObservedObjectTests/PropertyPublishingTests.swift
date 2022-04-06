@@ -68,4 +68,33 @@ class PropertyPublishingTests: XCTestCase {
         XCTAssertNil(container)
     }
     
+    func testDoesNotPublishUpdatesWhenOtherPropertiesChange() {
+        class MultipleValuesObservableContainer: ObservedObject {
+            
+            @Observed var stringValue: String
+            @Observed var intValue: Int
+            
+            init(stringValue: String, intValue: Int) {
+                self.stringValue = stringValue
+                self.intValue = intValue
+            }
+            
+        }
+        
+        let container = MultipleValuesObservableContainer(stringValue: "Hello, World", intValue: 42)
+        
+        var observedIntValues = [Int]()
+        let subscription = container
+            .publisher(for: \.intValue)
+            .sink { (value) in
+                observedIntValues.append(value)
+            }
+        
+        container.stringValue = "Hello again, World"
+        
+        XCTAssertEqual([42], observedIntValues)
+        
+        subscription.cancel()
+    }
+    
 }
