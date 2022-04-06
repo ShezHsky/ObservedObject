@@ -97,4 +97,50 @@ class PropertyPublishingTests: XCTestCase {
         subscription.cancel()
     }
     
+    func testDirectlyRequestingValue() {
+        let container = ObservableContainer(value: "Hello, World")
+        let subscriber = SpySubscriber<String, Never>()
+        
+        container
+            .publisher(for: \.value)
+            .subscribe(subscriber)
+        
+        subscriber.subscription?.request(.max(1))
+        
+        XCTAssertEqual(["Hello, World"], subscriber.receiveInputs)
+    }
+    
+    func testPublisherWaitsUntilRequestBeforeFormingPipeline() {
+        let container = ObservableContainer(value: "Hello, World")
+        let subscriber = SpySubscriber<String, Never>()
+        
+        container
+            .publisher(for: \.value)
+            .subscribe(subscriber)
+        
+        XCTAssertEqual([], subscriber.receiveInputs)
+    }
+    
+    private class SpySubscriber<T, U>: Combine.Subscriber where U: Error {
+                
+        typealias Input = T
+        typealias Failure = U
+        
+        private(set) var subscription: Subscription?
+        func receive(subscription: Subscription) {
+            self.subscription = subscription
+        }
+        
+        func receive(completion: Subscribers.Completion<U>) {
+            
+        }
+        
+        private(set) var receiveInputs = [T]()
+        func receive(_ input: T) -> Subscribers.Demand {
+            receiveInputs.append(input)
+            return .unlimited
+        }
+        
+    }
+    
 }

@@ -37,12 +37,20 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         where S: Combine.Subscriber, S.Input == Output, S.Failure == Failure
     {
         
+        private let object: Object
+        private let keyPath: KeyPath<Object, Value>
+        private let options: ObservedObjectPropertyOptions
         private let subscriber: S
         private var propertyDidChange: Cancellable?
         
         init(object: Object, keyPath: KeyPath<Object, Value>, options: ObservedObjectPropertyOptions, subscriber: S) {
+            self.object = object
+            self.keyPath = keyPath
+            self.options = options
             self.subscriber = subscriber
-            
+        }
+        
+        private func prepareUpstream() {
             let initialValuePublisher: AnyPublisher<Value, Never> = {
                 let initialValue = object[keyPath: keyPath]
                 if options.contains(.initial) {
@@ -69,11 +77,13 @@ extension Publishers.ObservedPropertyPublisher: Publisher {
         let combineIdentifier = CombineIdentifier()
         
         func request(_ demand: Subscribers.Demand) {
-            
+            if propertyDidChange == nil {
+                prepareUpstream()
+            }
         }
         
         func cancel() {
-            
+            Swift.print("")
         }
         
     }
