@@ -6,8 +6,10 @@ extension ObservedObject {
     ///
     /// - Parameter keyPath: The keypath of the property to publish
     /// - Returns: A publisher that emits elements each time the property’s value changes.
-    public func publisher<Value>(for keyPath: KeyPath<Self, Value>) -> Publishers.PropertyDidChange<Self, Value> {
-        Publishers.PropertyDidChange(object: self, keyPath: keyPath)
+    public func publisher<Value>(
+        for keyPath: KeyPath<Self, Value>
+    ) -> Publishers.ObservedPropertyPublisher<Self, Value> {
+        Publishers.ObservedPropertyPublisher(object: self, keyPath: keyPath)
     }
     
 }
@@ -19,7 +21,7 @@ extension Publishers {
     /// Use this publisher to integrate a property that’s observable with key-value observing into a Combine publishing
     /// chain. You can create a publisher of this type with the `ObservedObject` instance method publisher(for:),
     /// passing in the key path.
-    public struct PropertyDidChange<Object, Value> where Object: ObservedObject {
+    public struct ObservedPropertyPublisher<Object, Value> where Object: ObservedObject {
         
         private let object: Object
         private let keyPath: KeyPath<Object, Value>
@@ -33,7 +35,7 @@ extension Publishers {
     
 }
 
-extension Publishers.PropertyDidChange: Publisher {
+extension Publishers.ObservedPropertyPublisher: Publisher {
     
     public typealias Output = Value
     public typealias Failure = Never
