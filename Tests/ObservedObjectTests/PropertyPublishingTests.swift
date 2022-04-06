@@ -2,7 +2,7 @@ import Combine
 import ObservedObject
 import XCTest
 
-class PropertyDidChangeTests: XCTestCase {
+class PropertyPublishingTests: XCTestCase {
     
     func testPublisherForPropertyPostsInitialValue_OptionsContainInitialValue() {
         let container = ObservableContainer(value: "Hello, World")
