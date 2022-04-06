@@ -76,7 +76,7 @@ import Combine
 
 extension Observed {
     
-    /// A publisher for properties marked with the `@Observed` attribute.
+    /// A publisher for properties marked with the ``Observed`` attribute.
     public struct Publisher: Combine.Publisher {
         
         let currentValueSubject: CurrentValueSubject<Value, Never>
