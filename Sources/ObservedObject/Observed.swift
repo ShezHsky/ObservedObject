@@ -41,10 +41,7 @@ import Combine
         }
         set {
             observed[keyPath: storageKeyPath].currentValueSubject.value = newValue
-            
-            if let publisher = observed.objectDidChange as? ObservedObjectPublisher {
-                publisher.send()
-            }
+            ObservedObjectPublisherStorage[observed].send()
         }
     }
     
