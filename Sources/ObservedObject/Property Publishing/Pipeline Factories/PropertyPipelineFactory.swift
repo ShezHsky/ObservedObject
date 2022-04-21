@@ -1,6 +1,6 @@
 import Combine
 
-struct PropertyPipelineFactory<Value> {
+struct PropertyPipelineFactory<Value>: PipelineFactory {
     
     private let _makePipeline: () -> AnyPublisher<Value, Never>
     
@@ -47,6 +47,8 @@ struct PropertyPipelineFactory<Value> {
                 .eraseToAnyPublisher()
         }
     }
+    
+    typealias Pipeline = AnyPublisher<Value, Never>
     
     func makePipeline() -> AnyPublisher<Value, Never> {
         _makePipeline()
