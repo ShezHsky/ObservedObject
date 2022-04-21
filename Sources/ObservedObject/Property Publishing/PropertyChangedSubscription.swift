@@ -26,6 +26,8 @@ class PropertyChangedSubscription<Upstream: Publisher, S: Subscriber>: Subscript
     }
     
     private func prepareUpstream() {
+        guard propertyDidChange == nil else { return }
+        
         propertyDidChange = upstream
             .sink { [weak self] (newValue) in
                 self?.updateSubscriber(newValue: newValue)
