@@ -44,19 +44,12 @@ extension Publishers.PropertyPublisher: Publisher {
     public typealias Failure = Never
     
     public func receive<S>(subscriber: S) where S: Subscriber, S.Input == Value, S.Failure == Never {
-        let initalSubject: AnyPublisher<Value, Never> = {
-            if options.contains(.initial) {
-                return Just(object[keyPath: keyPath]).eraseToAnyPublisher()
-            } else {
-                return Empty().eraseToAnyPublisher()
-            }
-        }()
-        
         let upstream = object
             .objectDidChange
             .map(keyPath)
-            .merge(with: initalSubject)
+            .merge(with: Just(object[keyPath: keyPath]))
             .removeDuplicates(by: equalityComparator)
+            .dropFirst(options.contains(.initial) ? 0 : 1)
         
         let subscription = PropertyChangedSubscription(upstream: upstream, subscriber: subscriber)
         subscriber.receive(subscription: subscription)

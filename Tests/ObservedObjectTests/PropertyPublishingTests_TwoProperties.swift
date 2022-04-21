@@ -113,4 +113,22 @@ class PropertyPublishingTests_TwoProperties: XCTestCase {
         cancellable.cancel()
     }
     
+    func testDoesNotRepublishTupleWhenFirstElementDoesNotActuallyChangeValue() {
+        let container = ContainerWithTwoProperties<Int, Int>()
+        container.first = 10
+        
+        var observed: (Int?, Int?)?
+        let cancellable = container
+            .publisher(for: \.first, \.second, options: [])
+            .sink { (value) in
+                observed = value
+            }
+        
+        container.first = 10
+        
+        XCTAssertNil(observed, "First value did not actually change - Publisher should not emit event")
+        
+        cancellable.cancel()
+    }
+    
 }
