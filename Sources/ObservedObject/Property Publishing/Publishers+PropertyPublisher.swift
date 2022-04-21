@@ -48,3 +48,46 @@ extension Publishers.PropertyPublisher: Publisher {
     }
     
 }
+
+// MARK: - Convenience Publishing Functions
+
+extension ObservedObject {
+    
+    /// Returns a `Publisher` that emits the value of a property as it changes over time.
+    ///
+    /// - Note: The value must be `Equatable` for the pipeline to be aware when the value has actually changed.
+    ///
+    /// - Parameters:
+    ///    - keyPath: The key path of the property to publish.
+    ///    - options: Property-observation options.
+    ///
+    /// - Returns: A publisher that emits elements each time the property’s value changes.
+    public func publisher<Value>(
+        for keyPath: KeyPath<Self, Value>,
+        options: PropertyObservationOptions = [.initial]
+    ) -> Publishers.PropertyPublisher<Self, Value> where Value: Equatable {
+        publisher(for: keyPath, options: options, propertyChangedBy: ==)
+    }
+    
+    /// Returns a `Publisher` that emits the value of a property as it changes over time.
+    ///
+    /// - Parameters:
+    ///    - keyPath: The key path of the property to publish.
+    ///    - options: Property-observation options.
+    ///    - equalityComparator: A closure to determine whether two `Value`s are the same.
+    ///
+    /// - Returns: A publisher that emits elements each time the property’s value changes.
+    public func publisher<Value>(
+        for keyPath: KeyPath<Self, Value>,
+        options: PropertyObservationOptions = [.initial],
+        propertyChangedBy equalityComparator: @escaping (Value, Value) -> Bool
+    ) -> Publishers.PropertyPublisher<Self, Value> {
+        Publishers.PropertyPublisher(
+            object: self,
+            keyPath: keyPath,
+            options: options,
+            equalityComparator: equalityComparator
+        )
+    }
+    
+}

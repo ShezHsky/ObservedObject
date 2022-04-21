@@ -50,3 +50,30 @@ extension Publishers.PropertyPublisher2: Publisher {
     }
     
 }
+
+// MARK: - Convenience Publishing Functions
+
+extension ObservedObject {
+    
+    /// Returns a `Publisher` that emits the values of two properties as they change over time.
+    ///
+    /// - Parameters:
+    ///   - firstKeyPath: The key path of the first property to publish.
+    ///   - secondKeyPath: The key path of the second property to publish.
+    ///   - options: Property-observation options.
+    ///
+    /// - Returns: A publisher that emits elements each time the property values change.
+    public func publisher<Value1: Equatable, Value2: Equatable>(
+        for firstKeyPath: KeyPath<Self, Value1>,
+        _ secondKeyPath: KeyPath<Self, Value2>,
+        options: PropertyObservationOptions = [.initial]
+    ) -> Publishers.PropertyPublisher2<Self, Value1, Value2> {
+        Publishers.PropertyPublisher2(
+            object: self,
+            firstKeyPath: firstKeyPath,
+            secondKeyPath: secondKeyPath,
+            options: options
+        )
+    }
+    
+}
