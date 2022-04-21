@@ -32,27 +32,46 @@ extension Publishers.PropertyPublisher2: Publisher {
         
         private let pipelineFactory: PropertyPipelineFactory2<Value1, Value2>
         private let subscriber: S
+        private var demand: Subscribers.Demand?
         private var propertyDidChange: Cancellable?
         
         init(pipelineFactory: PropertyPipelineFactory2<Value1, Value2>, subscriber: S) {
             self.pipelineFactory = pipelineFactory
             self.subscriber = subscriber
-            
-            propertyDidChange = pipelineFactory
-                .makePipeline()
-                .sink { (tuple) in
-                    subscriber.receive(tuple)
-                }
         }
         
         let combineIdentifier = CombineIdentifier()
         
         func request(_ demand: Subscribers.Demand) {
-            
+            self.demand = demand
+            prepareUpstream()
         }
         
         func cancel() {
+            propertyDidChange?.cancel()
+        }
+        
+        private func prepareUpstream() {
+            propertyDidChange = pipelineFactory
+                .makePipeline()
+                .sink { [weak self] (newValue) in
+                    self?.updateSubscriber(newValue: newValue)
+                }
+        }
+        
+        private func updateSubscriber(newValue: (Value1, Value2)) {
+            guard var demand = demand else { return }
+
+            if demand > .none {
+                demand -= 1
+                _ = subscriber.receive(newValue)
+            }
             
+            if demand == .none {            
+                subscriber.receive(completion: .finished)
+            }
+            
+            self.demand = demand
         }
         
     }

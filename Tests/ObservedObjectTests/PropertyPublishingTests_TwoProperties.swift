@@ -1,3 +1,4 @@
+import Combine
 import ObservedObject
 import XCTest
 
@@ -64,6 +65,37 @@ class PropertyPublishingTests_TwoProperties: XCTestCase {
         XCTAssertEqual(20, observed?.1)
         
         cancellable.cancel()
+    }
+    
+    func testPublisherWaitsUntilRequestBeforeFormingPipeline() {
+        let container = ContainerWithTwoProperties<Int, Int>()
+        let subscriber = SpySubscriber<(Int?, Int?), Never>()
+        
+        container
+            .publisher(for: \.first, \.second)
+            .subscribe(subscriber)
+        
+        XCTAssertTrue(subscriber.receiveInputs.isEmpty)
+    }
+    
+    func testOnlyRequestingOneValueDoesNotProvideAnyExtraUpdates() throws {
+        let container = ContainerWithTwoProperties<Int, Int>()
+        let subscriber = SpySubscriber<(Int?, Int?), Never>()
+        
+        container
+            .publisher(for: \.first, \.second)
+            .subscribe(subscriber)
+        
+        subscriber.subscription?.request(.max(1))
+        
+        container.first = 10
+        let expectedCompletion = Subscribers.Completion<Never>.finished
+        
+        let receivedInput = try XCTUnwrap(subscriber.receiveInputs.first)
+        
+        XCTAssertEqual(nil, receivedInput.0)
+        XCTAssertEqual(nil, receivedInput.1)
+        XCTAssertEqual(expectedCompletion, subscriber.completion)
     }
     
 }
