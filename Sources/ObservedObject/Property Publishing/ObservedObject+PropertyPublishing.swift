@@ -6,8 +6,10 @@ extension ObservedObject {
     ///
     /// - Note: The value must be `Equatable` for the pipeline to be aware when the value has actually changed.
     ///
-    /// - Parameter keyPath: The keypath of the property to publish.
-    /// - Parameter options: Property-observation options.
+    /// - Parameters:
+    ///    - keyPath: The key path of the property to publish.
+    ///    - options: Property-observation options.
+    ///    
     /// - Returns: A publisher that emits elements each time the property’s value changes.
     public func publisher<Value>(
         for keyPath: KeyPath<Self, Value>,
@@ -22,11 +24,11 @@ extension ObservedObject {
     
     /// Returns a `Publisher` that emits the value of a property as it changes over time.
     ///
-    /// - Note: The value must be `Equatable` for the pipeline to be aware when the value has actually changed.
+    /// - Parameters:
+    ///    - keyPath: The key path of the property to publish.
+    ///    - options: Property-observation options.
+    ///    - equalityComparator: A closure to determine whether two `Value`s are the same.
     ///
-    /// - Parameter keyPath: The keypath of the property to publish.
-    /// - Parameter options: Property-observation options.
-    /// - Parameter equalityComparator: A closure to determine whether two `Value`s are the same.
     /// - Returns: A publisher that emits elements each time the property’s value changes.
     public func publisher<Value>(
         for keyPath: KeyPath<Self, Value>,
@@ -41,6 +43,14 @@ extension ObservedObject {
         )
     }
     
+    /// Returns a `Publisher` that emits the values of two properties as they change over time.
+    ///
+    /// - Parameters:
+    ///   - firstKeyPath: The key path of the first property to publish.
+    ///   - secondKeyPath: The key path of the second property to publish.
+    ///   - options: Property-observation options.
+    ///
+    /// - Returns: A publisher that emits elements each time the property values change.
     public func publisher<Value1: Equatable, Value2: Equatable>(
         for firstKeyPath: KeyPath<Self, Value1>,
         _ secondKeyPath: KeyPath<Self, Value2>,
