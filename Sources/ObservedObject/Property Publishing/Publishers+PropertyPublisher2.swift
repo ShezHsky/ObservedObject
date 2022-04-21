@@ -14,18 +14,18 @@ extension Publishers {
         private let object: Object
         private let firstKeyPath: KeyPath<Object, Value1>
         private let secondKeyPath: KeyPath<Object, Value2>
-//        private let options: PropertyObservationOptions
+        private let options: PropertyObservationOptions
         
         init(
             object: Object,
             firstKeyPath: KeyPath<Object, Value1>,
-            secondKeyPath: KeyPath<Object, Value2>//,
-//            options: PropertyObservationOptions
+            secondKeyPath: KeyPath<Object, Value2>,
+            options: PropertyObservationOptions
         ) {
             self.object = object
             self.firstKeyPath = firstKeyPath
             self.secondKeyPath = secondKeyPath
-//            self.options = options
+            self.options = options
         }
         
     }
@@ -39,11 +39,11 @@ extension Publishers.PropertyPublisher2: Publisher {
     
     public func receive<S>(subscriber: S) where S: Subscriber, S.Input == (Value1, Value2), S.Failure == Never {
         let initalSubject: AnyPublisher<(Value1, Value2), Never> = {
-//            if options.contains(.initial) {
+            if options.contains(.initial) {
                 return Just(object[keyPath: firstKeyPath]).combineLatest(Just(object[keyPath: secondKeyPath])).eraseToAnyPublisher()
-//            } else {
-//                return Empty().combineLatest(Empty()).eraseToAnyPublisher()
-//            }
+            } else {
+                return Empty().combineLatest(Empty()).eraseToAnyPublisher()
+            }
         }()
         
         let upstream = object

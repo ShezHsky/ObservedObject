@@ -98,4 +98,19 @@ class PropertyPublishingTests_TwoProperties: XCTestCase {
         XCTAssertEqual(expectedCompletion, subscriber.completion)
     }
     
+    func testPublisherForPropertyDoesNotPostInitialValue_OptionsDoNotContainInitialValue() {
+        let container = ContainerWithTwoProperties<Int, Int>()
+        
+        var observed: (Int?, Int?)?
+        let cancellable = container
+            .publisher(for: \.first, \.second, options: [])
+            .sink { (value) in
+                observed = value
+            }
+        
+        XCTAssertNil(observed, "Not specifying `initial` should not provide initial value to subscriber")
+        
+        cancellable.cancel()
+    }
+    
 }
