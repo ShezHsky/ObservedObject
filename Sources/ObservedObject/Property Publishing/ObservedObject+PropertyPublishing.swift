@@ -9,17 +9,13 @@ extension ObservedObject {
     /// - Parameters:
     ///    - keyPath: The key path of the property to publish.
     ///    - options: Property-observation options.
-    ///    
+    ///
     /// - Returns: A publisher that emits elements each time the property’s value changes.
     public func publisher<Value>(
         for keyPath: KeyPath<Self, Value>,
         options: PropertyObservationOptions = [.initial]
     ) -> Publishers.PropertyPublisher<Self, Value> where Value: Equatable {
-        Publishers.PropertyPublisher(
-            object: self,
-            keyPath: keyPath,
-            options: options
-        )
+        publisher(for: keyPath, options: options, propertyChangedBy: ==)
     }
     
     /// Returns a `Publisher` that emits the value of a property as it changes over time.

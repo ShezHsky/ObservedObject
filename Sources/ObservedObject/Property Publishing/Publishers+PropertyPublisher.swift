@@ -17,14 +17,6 @@ extension Publishers {
         init(
             object: Object,
             keyPath: KeyPath<Object, Value>,
-            options: PropertyObservationOptions
-        ) where Value: Equatable {
-            self.init(object: object, keyPath: keyPath, options: options, equalityComparator: ==)
-        }
-        
-        init(
-            object: Object,
-            keyPath: KeyPath<Object, Value>,
             options: PropertyObservationOptions,
             equalityComparator: @escaping (Value, Value) -> Bool
         ) {
