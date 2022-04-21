@@ -2,6 +2,11 @@ import Combine
 
 extension Publishers {
     
+    /// A `Publisher` that emits events when the values of two ``ObservedObject``'s properties change.
+    ///
+    /// Use this publisher to integrate two properties that are observable with ``@Observed`` into a Combine publishing
+    /// chain. You can create a publisher of this type with the ``ObservedObject`` instance method
+    /// ``ObservedObject.publisher(for:options:)``, passing in the key paths.
     public struct PropertyPublisher2<Object, Value1, Value2>
         where Object: ObservedObject, Value1: Equatable, Value2: Equatable
     {
