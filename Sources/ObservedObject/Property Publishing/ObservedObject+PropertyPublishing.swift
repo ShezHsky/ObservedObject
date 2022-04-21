@@ -14,11 +14,9 @@ extension ObservedObject {
         options: PropertyObservationOptions = [.initial]
     ) -> Publishers.PropertyPublisher<Self, Value> where Value: Equatable {
         Publishers.PropertyPublisher(
-            pipelineFactory: PropertyPipelineFactory(
-                object: self,
-                keyPath: keyPath,
-                options: options
-            )
+            object: self,
+            keyPath: keyPath,
+            options: options
         )
     }
     
@@ -36,12 +34,10 @@ extension ObservedObject {
         propertyChangedBy equalityComparator: @escaping (Value, Value) -> Bool
     ) -> Publishers.PropertyPublisher<Self, Value> {
         Publishers.PropertyPublisher(
-            pipelineFactory: PropertyPipelineFactory(
-                object: self,
-                keyPath: keyPath,
-                options: options,
-                propertyChangedBy: equalityComparator
-            )
+            object: self,
+            keyPath: keyPath,
+            options: options,
+            equalityComparator: equalityComparator
         )
     }
     
@@ -50,11 +46,9 @@ extension ObservedObject {
         _ secondKeyPath: KeyPath<Self, Value2>
     ) -> Publishers.PropertyPublisher2<Self, Value1, Value2> {
         Publishers.PropertyPublisher2(
-            pipelineFactory: PropertyPipelineFactory2(
-                object: self,
-                firstKeyPath: firstKeyPath,
-                secondKeyPath: secondKeyPath
-            )
+            object: self,
+            firstKeyPath: firstKeyPath,
+            secondKeyPath: secondKeyPath
         )
     }
     

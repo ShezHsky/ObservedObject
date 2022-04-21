@@ -9,10 +9,29 @@ extension Publishers {
     /// ``ObservedObject.publisher(for:options:)``, passing in the key path.
     public struct PropertyPublisher<Object, Value> where Object: ObservedObject {
         
-        private let pipelineFactory: PropertyPipelineFactory<Value>
+        private let object: Object
+        private let keyPath: KeyPath<Object, Value>
+        private let options: PropertyObservationOptions
+        private let equalityComparator: (Value, Value) -> Bool
         
-        init(pipelineFactory: PropertyPipelineFactory<Value>) {
-            self.pipelineFactory = pipelineFactory
+        init(
+            object: Object,
+            keyPath: KeyPath<Object, Value>,
+            options: PropertyObservationOptions
+        ) where Value: Equatable {
+            self.init(object: object, keyPath: keyPath, options: options, equalityComparator: ==)
+        }
+        
+        init(
+            object: Object,
+            keyPath: KeyPath<Object, Value>,
+            options: PropertyObservationOptions,
+            equalityComparator: @escaping (Value, Value) -> Bool
+        ) {
+            self.object = object
+            self.keyPath = keyPath
+            self.options = options
+            self.equalityComparator = equalityComparator
         }
         
     }
@@ -25,7 +44,21 @@ extension Publishers.PropertyPublisher: Publisher {
     public typealias Failure = Never
     
     public func receive<S>(subscriber: S) where S: Subscriber, S.Input == Value, S.Failure == Never {
-        let subscription = PropertySubscription(pipelineFactory: pipelineFactory, subscriber: subscriber)
+        let initalSubject: AnyPublisher<Value, Never> = {
+            if options.contains(.initial) {
+                return Just(object[keyPath: keyPath]).eraseToAnyPublisher()
+            } else {
+                return Empty().eraseToAnyPublisher()
+            }
+        }()
+        
+        let upstream = object
+            .objectDidChange
+            .map(keyPath)
+            .merge(with: initalSubject)
+            .removeDuplicates(by: equalityComparator)
+        
+        let subscription = PropertyChangedSubscription(upstream: upstream, subscriber: subscriber)
         subscriber.receive(subscription: subscription)
     }
     

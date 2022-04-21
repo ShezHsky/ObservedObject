@@ -1,16 +1,16 @@
 import Combine
 
-class PropertySubscription<Factory: PipelineFactory, S: Combine.Subscriber>: Combine.Subscription
-    where Factory.Pipeline.Output == S.Input, Factory.Pipeline.Failure == S.Failure
+class PropertyChangedSubscription<Upstream: Publisher, S: Subscriber>: Subscription
+    where Upstream.Failure == Never, S.Input == Upstream.Output, S.Failure == Upstream.Failure
 {
     
-    private let pipelineFactory: Factory
+    private let upstream: Upstream
     private let subscriber: S
     private var demand: Subscribers.Demand?
     private var propertyDidChange: Cancellable?
     
-    init(pipelineFactory: Factory, subscriber: S) {
-        self.pipelineFactory = pipelineFactory
+    init(upstream: Upstream, subscriber: S) {
+        self.upstream = upstream
         self.subscriber = subscriber
     }
     
@@ -26,8 +26,7 @@ class PropertySubscription<Factory: PipelineFactory, S: Combine.Subscriber>: Com
     }
     
     private func prepareUpstream() {
-        propertyDidChange = pipelineFactory
-            .makePipeline()
+        propertyDidChange = upstream
             .sink { [weak self] (newValue) in
                 self?.updateSubscriber(newValue: newValue)
             }
