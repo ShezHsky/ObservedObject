@@ -45,4 +45,17 @@ extension ObservedObject {
         )
     }
     
+    public func publisher<Value1: Equatable, Value2: Equatable>(
+        for firstKeyPath: KeyPath<Self, Value1>,
+        _ secondKeyPath: KeyPath<Self, Value2>
+    ) -> Publishers.PropertyPublisher2<Self, Value1, Value2> {
+        Publishers.PropertyPublisher2(
+            pipelineFactory: PropertyPipelineFactory2(
+                object: self,
+                firstKeyPath: firstKeyPath,
+                secondKeyPath: secondKeyPath
+            )
+        )
+    }
+    
 }
