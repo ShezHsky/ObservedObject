@@ -60,4 +60,28 @@ extension ObservedObject {
         )
     }
     
+    /// Returns a `Publisher` that emits the values of three properties as they change over time.
+    ///
+    /// - Parameters:
+    ///   - firstKeyPath: The key path of the first property to publish.
+    ///   - secondKeyPath: The key path of the second property to publish.
+    ///   - thirdKeyPath: The key path of the third property to publish.
+    ///   - options: Property-observation options.
+    ///
+    /// - Returns: A publisher that emits elements each time the property values change.
+    public func publisher<Value1: Equatable, Value2: Equatable, Value3: Equatable>(
+        for firstKeyPath: KeyPath<Self, Value1>,
+        _ secondKeyPath: KeyPath<Self, Value2>,
+        _ thirdKeyPath: KeyPath<Self, Value3>,
+        options: PropertyObservationOptions = [.initial]
+    ) -> Publishers.PropertyPublisher3<Self, Value1, Value2, Value3> {
+        Publishers.PropertyPublisher3(
+            object: self,
+            firstKeyPath: firstKeyPath,
+            secondKeyPath: secondKeyPath,
+            thirdKeyPath: thirdKeyPath,
+            options: options
+        )
+    }
+    
 }

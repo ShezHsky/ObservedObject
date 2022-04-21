@@ -48,6 +48,7 @@ weather.temperature = 25
 ### Observing Multiple Properties
 
 - ``ObservedObject/ObservedObject/publisher(for:_:options:)``
+- ``ObservedObject/ObservedObject/publisher(for:_:_:options:)``
 
 ## Notes
 
