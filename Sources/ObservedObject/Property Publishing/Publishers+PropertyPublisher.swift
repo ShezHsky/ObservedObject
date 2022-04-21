@@ -41,7 +41,7 @@ extension Publishers.PropertyPublisher: Publisher {
             .map(keyPath)
             .merge(with: Just(object[keyPath: keyPath]))
             .removeDuplicates(by: equalityComparator)
-            .dropFirst(options.contains(.initial) ? 0 : 1)
+            .dropFirst(options.ignoredElementsCount)
         
         let subscription = PropertyChangedSubscription(upstream: upstream, subscriber: subscriber)
         subscriber.receive(subscription: subscription)

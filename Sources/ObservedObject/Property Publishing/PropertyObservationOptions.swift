@@ -15,3 +15,11 @@ public struct PropertyObservationOptions: OptionSet {
     public static let initial = PropertyObservationOptions(rawValue: 1 << 0)
     
 }
+
+extension PropertyObservationOptions {
+    
+    var ignoredElementsCount: Int {
+        contains(.initial) ? 0 : 1
+    }
+    
+}
